@@ -15,5 +15,11 @@ MonoBehaviour:
   direction: {x: 0, y: 0, z: 0}
   owner: {fileID: 0}
   ownerMovement: {fileID: 0}
-  timeChangeDir: 0
+  timeChangeDir: 1
   randomPoint: {x: 0, y: 0, z: 0}
+  tagAlvo: Orb
+  raioDeteccao: 10
+  speed: 500
+  speedNormal: 50
+  minLimite: {x: -50, y: -50}
+  maxLimite: {x: 50, y: 50}

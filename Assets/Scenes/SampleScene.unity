@@ -604,7 +604,7 @@ MonoBehaviour:
   snakes: []
   behaviors:
   - {fileID: 11400000, guid: 66cd5294d179eb04bb909d92843609e6, type: 2}
-  - {fileID: 11400000, guid: 160418bca43e39d4c85ea4b4c53179e4, type: 2}
+  - {fileID: 11400000, guid: e03e9d4527f6dc04ea8e0dc3342b39ce, type: 2}
   OrbsPerSnake: 1
   NumberSnakes: 50
   OrbSpawnTime: 1
@@ -1128,6 +1128,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Orb
+      objectReference: {fileID: 0}
+    - target: {fileID: 4286169683249845843, guid: df1a7f71960ecd34ebcb0ecc0199b600,
+        type: 3}
+      propertyPath: m_Layer
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4286169683249845845, guid: df1a7f71960ecd34ebcb0ecc0199b600,
         type: 3}

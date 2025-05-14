@@ -5,6 +5,17 @@ using UnityEngine;
 [CreateAssetMenu(menuName = "AIBehaviours/PlayerAI")]
 public class PlayerAI : AIBehaviour
 {
+    public string tagAlvo = "Orb";
+    public float raioDeteccao = 1000000f;
+    public float speed = 500f;
+    public float speedNormal = 50f;
+
+    public Vector2 minLimite = new Vector2(-50f, -50f);
+    public Vector2 maxLimite = new Vector2(50f, 50f);
+    //public LayerMask layerAlvo;
+
+    private Transform alvoMaisProximo;
+
     public override void Init(GameObject own, SnakeMovement ownMove)
     {
         base.Init(own, ownMove);
@@ -13,7 +24,24 @@ public class PlayerAI : AIBehaviour
 
     public override void Execute()
     {
-        MoveForward();
+        alvoMaisProximo = EncontrarMaisProximoNoRaio();
+
+        if (alvoMaisProximo != null)
+        {
+            ownerMovement.speed = speed;
+            Vector2 novaPosicao = Vector2.MoveTowards(
+                owner.transform.position,
+                alvoMaisProximo.position,
+                speed * Time.deltaTime
+            );
+            novaPosicao = LimitarDentroDosLimites(novaPosicao);
+            owner.transform.position = new Vector3(novaPosicao.x, novaPosicao.y, owner.transform.position.z);
+        }
+        else
+        {
+            ownerMovement.speed = speedNormal;
+            MoveForward();
+        }
     }
 
     void MoveForward()
@@ -22,7 +50,9 @@ public class PlayerAI : AIBehaviour
         Quaternion rotation = Quaternion.AngleAxis(-angle, Vector3.forward);
         owner.transform.rotation = Quaternion.Slerp(owner.transform.rotation, rotation, ownerMovement.speed * Time.deltaTime);
 
-        owner.transform.position = Vector2.MoveTowards(owner.transform.position, randomPoint, ownerMovement.speed * Time.deltaTime);
+        Vector2 novaPosicao = Vector2.MoveTowards(owner.transform.position, randomPoint, ownerMovement.speed * Time.deltaTime);
+        novaPosicao = LimitarDentroDosLimites(novaPosicao);
+        owner.transform.position = new Vector3(novaPosicao.x, novaPosicao.y, owner.transform.position.z);
     }
 
     IEnumerator UpdateDirEveryXSeconds(float x)
@@ -44,5 +74,36 @@ public class PlayerAI : AIBehaviour
         direction.z = 0.0f;
 
         ownerMovement.StartCoroutine(UpdateDirEveryXSeconds(x));
+    }
+
+    //Procurar pelos orbs
+
+    Transform EncontrarMaisProximoNoRaio()
+    {
+        Collider2D[] coliders = Physics2D.OverlapCircleAll(owner.transform.position, raioDeteccao);
+        Transform maisProximo = null;
+        float menorDistancia = Mathf.Infinity;
+
+        foreach (Collider2D col in coliders)
+        {
+            if (col.CompareTag(tagAlvo))
+            {
+                float distancia = Vector2.Distance(owner.transform.position, col.transform.position);
+                if (distancia < menorDistancia)
+                {
+                    menorDistancia = distancia;
+                    maisProximo = col.transform;
+                }
+            }
+        }
+
+        return maisProximo;
+    }
+
+    Vector2 LimitarDentroDosLimites(Vector2 pos)
+    {
+        float x = Mathf.Clamp(pos.x, minLimite.x, maxLimite.x);
+        float y = Mathf.Clamp(pos.y, minLimite.y, maxLimite.y);
+        return new Vector2(x, y);
     }
 }

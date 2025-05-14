@@ -80,7 +80,7 @@ public class GameLogic : MonoBehaviour
             {
                 Destroy(snakes[i]);
                 snakes.RemoveAt(i);
-                Debug.Log("Morreu a Snake " + i.ToString());
+                //Debug.Log("Morreu a Snake " + i.ToString());
 
                 if (i == selectedId) //a priori deve sempre sobrar 1 cobrinha (a menos que as duas últimas colidam de cabeça)
                 {
@@ -130,7 +130,7 @@ public class GameLogic : MonoBehaviour
         if (selectedId > 0) selectedId--;
         else selectedId = snakes.Count - 1;
         snakes[selectedId].GetComponentInChildren<SnakeMovement>().selected = true;
-        Debug.Log("SELECTED ID = " + selectedId.ToString());
+        //Debug.Log("SELECTED ID = " + selectedId.ToString());
 
     }
 
@@ -139,7 +139,7 @@ public class GameLogic : MonoBehaviour
             snakes[selectedId].GetComponentInChildren<SnakeMovement>().selected = false;
             selectedId = (selectedId + 1) % snakes.Count;
             snakes[selectedId].GetComponentInChildren<SnakeMovement>().selected = true;
-            Debug.Log("SELECTED ID = " + selectedId.ToString());
+            //Debug.Log("SELECTED ID = " + selectedId.ToString());
 
     }
     

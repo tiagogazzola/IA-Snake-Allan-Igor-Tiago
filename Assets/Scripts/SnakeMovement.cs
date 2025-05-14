@@ -33,7 +33,7 @@ public class SnakeMovement : MonoBehaviour
     {
         if (selected)
         {
-            Debug.Log("Speed is " + speed.ToString());
+            //Debug.Log("Speed is " + speed.ToString());
             if (Input.GetMouseButtonDown(0))
             {
                 Dash();
@@ -148,7 +148,7 @@ public class SnakeMovement : MonoBehaviour
         
         if (bodyParts.Count > 2)
         {
-            Debug.Log("Entrou!");
+            //Debug.Log("Entrou!");
             DeleteLastPart();
             isRunning = true;
             speed = speedRunning;
