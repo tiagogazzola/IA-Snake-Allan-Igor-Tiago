@@ -6,15 +6,17 @@ using UnityEngine;
 public class PlayerAI : AIBehaviour
 {
     public string tagAlvo = "Orb";
-    public float raioDeteccao = 1000000f;
-    public float speed = 500f;
-    public float speedNormal = 50f;
+    public float raioDeteccao = 10000000f;
+    public float speed = 5000f;
+    public float raioFuga = 2f;
 
     public Vector2 minLimite = new Vector2(-50f, -50f);
     public Vector2 maxLimite = new Vector2(50f, 50f);
-    //public LayerMask layerAlvo;
 
     private Transform alvoMaisProximo;
+
+    //O exercício não proibia nenhuma loucura, então:
+    private bool hacks = true;
 
     public override void Init(GameObject own, SnakeMovement ownMove)
     {
@@ -24,31 +26,52 @@ public class PlayerAI : AIBehaviour
 
     public override void Execute()
     {
+        Transform inimigoMaisProximo;
+        if (VerificarInimigoProximo(out inimigoMaisProximo))
+        {
+            Debug.Log("Inimigo detectado");
+            if (hacks) { ownerMovement.speed = 5f; }
+            FugirDoInimigoMaisProximo(inimigoMaisProximo);
+            return;
+        }
+
         alvoMaisProximo = EncontrarMaisProximoNoRaio();
 
         if (alvoMaisProximo != null)
         {
-            ownerMovement.speed = speed;
+            if (hacks) { ownerMovement.speed = speed; }
             Vector2 novaPosicao = Vector2.MoveTowards(
                 owner.transform.position,
                 alvoMaisProximo.position,
-                speed * Time.deltaTime
+                ownerMovement.speed * Time.deltaTime
             );
             novaPosicao = LimitarDentroDosLimites(novaPosicao);
             owner.transform.position = new Vector3(novaPosicao.x, novaPosicao.y, owner.transform.position.z);
         }
         else
         {
-            ownerMovement.speed = speedNormal;
+            if (hacks) { ownerMovement.speed = 3.5f; }
             MoveForward();
         }
     }
 
+    // Wonderzinho
+
     void MoveForward()
     {
-        float angle = Mathf.Atan2(direction.x, direction.y) * Mathf.Rad2Deg;
+        Vector2 direcaoAtual = direction.normalized;
+        float angle = Mathf.Atan2(direcaoAtual.x, direcaoAtual.y) * Mathf.Rad2Deg;
         Quaternion rotation = Quaternion.AngleAxis(-angle, Vector3.forward);
         owner.transform.rotation = Quaternion.Slerp(owner.transform.rotation, rotation, ownerMovement.speed * Time.deltaTime);
+
+        // Verifica se há "Body" na frente
+        RaycastHit2D hit = Physics2D.Raycast(owner.transform.position, direcaoAtual, 3f);
+        if (hit.collider != null && hit.collider.CompareTag("Body"))
+        {
+            // Inverte a direção
+            randomPoint = owner.transform.position - (Vector3)direction;
+            direction = randomPoint - owner.transform.position;
+        }
 
         Vector2 novaPosicao = Vector2.MoveTowards(owner.transform.position, randomPoint, ownerMovement.speed * Time.deltaTime);
         novaPosicao = LimitarDentroDosLimites(novaPosicao);
@@ -86,14 +109,32 @@ public class PlayerAI : AIBehaviour
 
         foreach (Collider2D col in coliders)
         {
-            if (col.CompareTag(tagAlvo))
+            if (!col.CompareTag(tagAlvo)) continue;
+
+            Vector2 direcao = (col.transform.position - owner.transform.position).normalized;
+            float distancia = Vector2.Distance(owner.transform.position, col.transform.position);
+
+            // RaycastAll para pegar todos os obstáculos no caminho
+            RaycastHit2D[] hits = Physics2D.RaycastAll(owner.transform.position, direcao, distancia);
+
+            bool caminhoBloqueado = false;
+            foreach (RaycastHit2D hit in hits)
             {
-                float distancia = Vector2.Distance(owner.transform.position, col.transform.position);
-                if (distancia < menorDistancia)
+                // Ignora o próprio orb e o player
+                if (hit.collider.gameObject == col.gameObject || hit.collider.gameObject == owner) continue;
+
+                // Se houver qualquer outro objeto com tag "Body", o caminho está bloqueado
+                if (hit.collider.CompareTag("Body"))
                 {
-                    menorDistancia = distancia;
-                    maisProximo = col.transform;
+                    caminhoBloqueado = true;
+                    break;
                 }
+            }
+
+            if (!caminhoBloqueado && distancia < menorDistancia)
+            {
+                menorDistancia = distancia;
+                maisProximo = col.transform;
             }
         }
 
@@ -105,5 +146,40 @@ public class PlayerAI : AIBehaviour
         float x = Mathf.Clamp(pos.x, minLimite.x, maxLimite.x);
         float y = Mathf.Clamp(pos.y, minLimite.y, maxLimite.y);
         return new Vector2(x, y);
+    }
+
+    // Fuga caso cheguem perto
+
+    bool VerificarInimigoProximo(out Transform inimigoMaisProximo)
+    {
+        inimigoMaisProximo = null;
+        float menorDistancia = Mathf.Infinity;
+
+        Collider2D[] inimigos = Physics2D.OverlapCircleAll(owner.transform.position, raioFuga);
+        foreach (Collider2D col in inimigos)
+        {
+            if (col.CompareTag("Body") && col.transform.root != owner.transform.root)
+            {
+                float distancia = Vector2.Distance(owner.transform.position, col.transform.position);
+                if (distancia < menorDistancia)
+                {
+                    menorDistancia = distancia;
+                    inimigoMaisProximo = col.transform;
+                }
+            }
+        }
+
+        return inimigoMaisProximo != null;
+    }
+
+    void FugirDoInimigoMaisProximo(Transform inimigo)
+    {
+        if (inimigo == null) return;
+
+        Vector2 direcaoFuga = (owner.transform.position - inimigo.position).normalized;
+        Vector2 novaPosicao = (Vector2)owner.transform.position + direcaoFuga * ownerMovement.speed * Time.deltaTime;
+        novaPosicao = LimitarDentroDosLimites(novaPosicao);
+        owner.transform.position = new Vector3(novaPosicao.x, novaPosicao.y, owner.transform.position.z);
+        Debug.Log(owner.transform.position);
     }
 }
