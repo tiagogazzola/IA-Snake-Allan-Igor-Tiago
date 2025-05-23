@@ -2,8 +2,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-[CreateAssetMenu(menuName = "AIBehaviours/PlayerAI")]
-public class PlayerAI : AIBehaviour
+[CreateAssetMenu(menuName = "AIBehaviours/AllanIgorTiagoBOT")]
+public class AllanIgorTiagoBOT : AIBehaviour
 {
     public string tagAlvo = "Orb";
     public float raioDeteccao = 10000000f;
@@ -121,7 +121,7 @@ public class PlayerAI : AIBehaviour
             foreach (RaycastHit2D hit in hits)
             {
                 // Ignora o próprio orb e o player
-                if (hit.collider.gameObject == col.gameObject || hit.collider.gameObject == owner) continue;
+                if (hit.collider.gameObject == col.gameObject || hit.collider.transform.root == owner.transform.root) continue;
 
                 // Se houver qualquer outro objeto com tag "Body", o caminho está bloqueado
                 if (hit.collider.CompareTag("Body"))
